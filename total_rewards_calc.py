@@ -8,8 +8,10 @@ class Networks:
     westend = ['westend', 12]
 
 
-address = "EwL4UJNYbhknJsYbbhkkKxVFNKBKBPoTj9pKiavCCp2ttM3"
-current_network = Networks.kusama
+address = "12q765k8yS4axjrZf5ZmD88ZBHD4LPdYVABD1cJ4uwEMuxPo"
+current_network = Networks.polka
+
+
 rewards = 0
 rewards_count = 0
 slash_count = 0
