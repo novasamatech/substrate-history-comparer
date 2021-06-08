@@ -8,7 +8,7 @@ class Networks:
     westend = ['westend', 12]
 
 
-address = "12q765k8yS4axjrZf5ZmD88ZBHD4LPdYVABD1cJ4uwEMuxPo"
+address = "15rGHqjWR35S4LF2s31EHC1EaCvzBro9LzvASysRp53UARNR"
 current_network = Networks.polka
 
 
@@ -17,21 +17,27 @@ rewards_count = 0
 slash_count = 0
 slash_amount = 0
 block_number = 0
+bond_value = 0
 
-if current_network == Networks.kusama:
-    subquery_url = "https://api.subquery.network/sq/OnFinality-io/sum-reward-kusama"
-else:
-    subquery_url = "https://api.subquery.network/sq/OnFinality-io/sum-reward"
-query = "{sumReward   (id: \"%s\")\n   {accountTotal}\n}" % (address)
+class SubQuery:
+    def __init__(self):
+        self.rewards_test_url = "https://api.subquery.network/sq/jiqiang90/staking-records"
+        rewards_test_payload = "{\n    stakingRewards (filter:{address:{equalTo:\"%s\"}}) {\n        totalCount\n        nodes {\n            id\n            address\n            balance\n            date\n        }\n    edges{\n      cursor\n      node{\n        id\n        address\n        balance\n        date\n        createdAt\n        updatedAt\n      }\n    }\n    }\n  sumRewards(filter:{id:{equalTo: \"%s\"}}){\n  \tnodes{\n      id\n      accountReward\n      accountSlash\n      accountTotal\n      createdAt\n      updatedAt\n    }\n    edges{\n      cursor\n      node{\n        id\n        accountReward\n        accountSlash\n        accountTotal\n        createdAt\n        updatedAt\n      }\n    }\n    pageInfo{\n      hasNextPage\n      hasPreviousPage\n      startCursor\n      endCursor\n    }\n    totalCount\n  }\n}" % (address, address)
+        self.rewards_test_query = {"query": rewards_test_payload}
 
-subquery_payload = {"query": query}
+        if current_network == Networks.kusama:
+            self.url = "https://api.subquery.network/sq/OnFinality-io/sum-reward-kusama"
+        else:
+            self.url = "https://api.subquery.network/sq/OnFinality-io/sum-reward"
+        query = "{sumReward   (id: \"%s\")\n   {accountTotal}\n}" % (address)
+        self.payload = {"query": query}
+        self.rewards_list = list()
 
-subscan_reward_url = "https://{}.subscan.io/api/scan/account/reward_slash".format(
-    current_network[0])
-subscan_extrinsic_url = "https://{}.api.subscan.io/api/scan/extrinsics".format(
-    current_network[0])
-subscan_payload = {"row": 100, "address": address, "page": 0}
-n = 0
+class SubScan:
+    def __init__(self):
+        self.reward_url = "https://{}.api.subscan.io/api/scan/account/reward_slash".format(current_network[0])
+        self.extrinsic_url = "https://{}.api.subscan.io/api/scan/extrinsics".format(current_network[0])
+        self.rewards_list = list()
 
 
 def payload_creator(address, n):
@@ -41,30 +47,38 @@ def payload_creator(address, n):
         "page": n
     })
 
-
-headers = {
+def send_request(url, data):
+    headers = {
     'Content-Type': 'application/json',
     'x-api-key': 'd5a1d1cffde69e7cbff6d9c0cf1cca6d'
-}
+    }
+    return requests.request("POST", url, headers=headers,
+                                    data=data)
 
-subscan_response = requests.request("POST", subscan_reward_url, headers=headers,
-                                    data=payload_creator(address, n)).json()
+# Initial data
+subscan = SubScan()
+subquery = SubQuery()
+
+# Get data from SubScan
+subscan_response = send_request(subscan.reward_url, payload_creator(address, 0)).json()
+x = subscan_response
 count = int(subscan_response.get("data").get("count"))
 request_count = count/100
 
+n = 0
 while n < request_count:
-    new_subscan_response = requests.request("POST", subscan_reward_url, headers=headers, data=payload_creator(
-        address, n)).json()
+    new_subscan_response = send_request(subscan.reward_url, payload_creator(address, n)).json()
     list_iterator = iter(new_subscan_response.get("data").get("list"))
     for i in list_iterator:
         current_block = i.get("block_num")
         current_ivent_id = i.get("event_id")
         current_amount = i.get("amount")
+        subscan.rewards_list.append(i)
         if block_number == 0:
             block_number = current_block
         if block_number > current_block:
             block_number = current_block
-        if current_ivent_id != "Reward":
+        if current_ivent_id != "Reward" and "Slash":
             print(i)
         if current_ivent_id == "Slash":
             rewards = rewards - float(current_amount)
@@ -75,20 +89,19 @@ while n < request_count:
         rewards_count += 1
     n += 1
 
-subquery_response = requests.request("POST", subquery_url, headers=headers,
-                                     data=json.dumps(subquery_payload)).json()
+# Get data from SubQuery
+total_rewards_subquery_response = send_request(subquery.url, json.dumps(subquery.payload)).json()
+subscan_extrinsic_response = send_request(subscan.extrinsic_url, payload_creator(address, 0)).json()
+try:
+    list_iterator = iter(subscan_extrinsic_response.get("data").get("extrinsics"))
+except:
+    print("Extrinsic is None: ",subscan_extrinsic_response)
 
-subscan_extrinsic_response = requests.request("POST", subscan_extrinsic_url, headers=headers,
-                                              data=json.dumps(subscan_payload)).json()
-list_iterator = iter(subscan_extrinsic_response.get("data").get("extrinsics"))
-bond_value = 0
-reward_destination = ''
 for i in list_iterator:
     json_representation = json.loads(i.get("params"))
     call_module_function = i.get("call_module_function")
     if call_module_function == 'bond':
         bond_value = bond_value + float(json_representation[1].get("value"))
-        reward_destination = json_representation[2].get("value")
     if call_module_function == 'unbond':
         bond_value = bond_value - float(json_representation[0].get("value"))
     if call_module_function == 'bond_extra':
@@ -96,20 +109,57 @@ for i in list_iterator:
     if call_module_function == 'rebond':
         bond_value = bond_value + float(json_representation[0].get("value"))
     if call_module_function == 'batch':
-        bond_value = bond_value + float(json_representation[0].get("value")[0].get("call_args")[1].get("value"))
+        try:
+            bond_value = bond_value + float(json_representation[0].get("value")[0].get("call_args")[1].get("value"))
+        except:
+            print("It's not staking batch",i)
+
+subquery_compare_rewards_responce = send_request(subquery.rewards_test_url, json.dumps(subquery.rewards_test_query)).json()
+list_subquery_wdges = iter(subquery_compare_rewards_responce.get("data").get("stakingRewards").get("edges"))
+
+for i in list_subquery_wdges:
+    subquery.rewards_list.append(i)
 
 
+result_reward_list = subscan.rewards_list.copy()
+for subs in subscan.rewards_list:
+    amount_subscan = subs.get('amount')
+    for subq in subquery.rewards_list:
+        amount_subquery = subq.get('node').get('balance')
+        if amount_subscan == amount_subquery:
+            z=0
+            for item in result_reward_list:
+                if item.get("amount") == amount_subscan:
+                    result_reward_list.pop(z)
+                z+=1
+            break
 
+def hashes_and_blocks(difference_list):
+    for item in difference_list:
+        print("Block: {}\n Hash: {}\n Amount: {}\n".format(item.get("block_num"),item.get("extrinsic_hash"),item.get("amount")))
 
 print("Bond amount: {}".format(bond_value/10**current_network[1]))
-print("Reward destination: {}".format(reward_destination))
 print("Account address: {}".format(address))
-print("First block with rewards from subscan: {}".format(block_number))
-print("Rewards count: {}, Slash count: {}, Slash amount: {}".format(
+print("*** Subscan result: ***")
+print("First block with rewards: {}".format(block_number))
+print("SubScan rewards count: {}, Slash count: {}, Slash amount: {}".format(
     rewards_count, slash_count, slash_amount/10**current_network[1]))
-print("Subscan results:  {}".format(rewards/10**current_network[1]))
-print("Subquery results: {}".format(float(subquery_response.get(
+print("Total rewards from Subscan:  {}".format(rewards/10**current_network[1]))
+print("Locked balance: {}".format(bond_value/10**current_network[1]+rewards/10**current_network[1]))
+print("\n")
+print("*** SubQuery production result: ***")
+print("Total rewards from Subquery: {}".format(float(total_rewards_subquery_response.get(
     "data").get("sumReward").get("accountTotal"))/10**current_network[1]))
-print("Locked balance with subscan result: {}".format(bond_value/10**current_network[1]+rewards/10**current_network[1]))
-print("Locked balance with subquery result: {}".format(bond_value/10**current_network[1]+float(subquery_response.get(
+print("Locked balance: {}".format(bond_value/10**current_network[1]+float(total_rewards_subquery_response.get(
     "data").get("sumReward").get("accountTotal"))/10**current_network[1]))
+print("\n")
+print("*** SubQuery test result: ***")
+print("Subquery_test rewards count: {}".format(subquery_compare_rewards_responce.get("data").get("stakingRewards").get("totalCount")))
+print("Subquery_test rewards amount: {}".format(float(subquery_compare_rewards_responce.get("data").get("sumRewards").get("edges")[0].get("node").get("accountTotal"))/10**current_network[1]))
+print("Locked balance: {}".format(bond_value/10**current_network[1]+float(subquery_compare_rewards_responce.get("data").get("sumRewards").get("edges")[0].get("node").get("accountTotal"))/10**current_network[1]))
+
+
+if current_network == Networks.polka:
+    print("===========")
+    print("Difference betwen SubScan and test SubQuery is {} extrinsics".format(len(result_reward_list)))
+    hashes_and_blocks(result_reward_list)
