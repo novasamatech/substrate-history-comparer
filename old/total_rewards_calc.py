@@ -8,7 +8,7 @@ class Networks:
     westend = ['westend', 12]
 
 
-address = "15rGHqjWR35S4LF2s31EHC1EaCvzBro9LzvASysRp53UARNR"
+address = "13mAjFVjFDpfa42k2dLdSnUyrSzK8vAySsoudnxX2EKVtfaq"
 current_network = Networks.polka
 
 
@@ -98,7 +98,10 @@ except:
     print("Extrinsic is None: ",subscan_extrinsic_response)
 
 for i in list_iterator:
-    json_representation = json.loads(i.get("params"))
+    try:
+        json_representation = json.loads(i.get("params"))
+    except:
+        print("Extrinsic params is null")
     call_module_function = i.get("call_module_function")
     if call_module_function == 'bond':
         bond_value = bond_value + float(json_representation[1].get("value"))
