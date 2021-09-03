@@ -26,16 +26,22 @@ class SubscanData:
         data = self.__request_processor(self.url_extrinsics)
         self.data.append(data)
         for element in data:
-            self.extrinsic_count = len(
-                self.type_of_subscan_operation_picker(element))
+            try:
+                self.extrinsic_count = len(
+                    self.type_of_subscan_operation_picker(element))
+            except:
+                pass
         return data
 
     def getTransfers(self):
         data = self.__request_processor(self.url_transfers)
         self.data.append(data)
         for element in data:
-            self.transfer_count = len(
-                self.type_of_subscan_operation_picker(element))
+            try:
+                self.transfer_count = len(
+                    self.type_of_subscan_operation_picker(element))
+            except:
+                pass
         return data
 
     def getRewards(self):
