@@ -9,7 +9,7 @@ class Networks:
 
 
 network = Networks.polka
-address = "13mAjFVjFDpfa42k2dLdSnUyrSzK8vAySsoudnxX2EKVtfaq"
+address = "114SUbKCXjmb9czpWTtS3JANSmNRwVa4mmsMrWYpRG1kDH5"
 
 url_extrinsics = 'https://%s.api.subscan.io/api/scan/extrinsics' % (network[0])
 url_rewards = 'https://%s.api.subscan.io/api/scan/account/reward_slash' % (
@@ -26,8 +26,8 @@ def getKeysForValueComp(dictionary, value):
     return [key for key in dictionary if dictionary[key] == value]
 
 def matching_values(subquery_data, subscan_data):
-    print('Subquery data has: %s' % len(subquery_data))
-    print('Subscan data has: %s' % len(subscan_data))
+    print('Subquery data has: %s elements' % len(subquery_data))
+    print('Subscan data has: %s elements' % len(subscan_data))
     subq_extrinsics = []
     subq_transfers = []
     subq_rewards = []
@@ -38,6 +38,7 @@ def matching_values(subquery_data, subscan_data):
             subq_extrinsics.append(subq_element)
         if subq_element.get('reward'):
             subq_rewards.append(subq_element)
+    print('Subquery transfers: %s, extrinsics: %s, rewards: %s' % (len(subq_transfers), len(subq_extrinsics), len(subq_rewards)))
 
     for transfer in subq_transfers:
         value = transfer['transfer']['extrinsicId']
