@@ -1,56 +1,68 @@
-import requests
 import json
 import math
 
-from requests.models import requote_uri
+import requests
 
 
 class SubscanData:
-    address = ""
-    url_extrinsics = ""
-    url_transfers = ""
-    url_rewards = ""
-    data = []
 
     def __init__(self, address, url_extrinsics, url_transfers, url_rewards) -> None:
         self.address = address
         self.url_extrinsics = url_extrinsics
         self.url_transfers = url_transfers
         self.url_rewards = url_rewards
+        self.data = []
+        self.transfer_count = int()
+        self.extrinsic_count = int()
+        self.reward_count = int()
+        self.none_elements = int()
 
     def getAllData(self) -> None:
         self.getExtrinsics()
         self.getRewards()
-        self.getTransactions()
+        self.getTransfers()
 
     def getExtrinsics(self):
         data = self.__request_processor(self.url_extrinsics)
         self.data.append(data)
+        for element in data:
+            self.extrinsic_count = len(
+                self.type_of_subscan_operation_picker(element))
         return data
 
-    def getTransactions(self):
+    def getTransfers(self):
         data = self.__request_processor(self.url_transfers)
         self.data.append(data)
+        for element in data:
+            self.transfer_count = len(
+                self.type_of_subscan_operation_picker(element))
         return data
 
     def getRewards(self):
         data = self.__request_processor(self.url_rewards)
         self.data.append(data)
+        for element in data:
+            try:
+                self.reward_count = len(
+                    self.type_of_subscan_operation_picker(element))
+            except:
+                pass
         return data
 
     def type_of_subscan_operation_picker(self, element):
+        return_data = []
         try:
             return_data = element['data']['extrinsics']
         except:
-            print('It is not extrinsics')
+            pass
         try:
             return_data = element['data']['list']
         except:
-            print('It is not list')
+            pass
         try:
             return_data = element['data']['transfers']
         except:
-            print('It is not transfer')
+            pass
         return return_data
 
     def store_all_operation_in_one_list(this):

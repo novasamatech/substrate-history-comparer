@@ -1,16 +1,15 @@
-import requests
 import json
-from .fixture import historyElements_by_address, historyElement_by_id
+import requests
+
+from .fixture import historyElement_by_id, historyElements_by_address
 
 
 class SubqueryData:
-    url = ""
-    address = ""
-    history_elements = []
 
     def __init__(self, url, address):
-        self.url = url
         self.address = address
+        self.url = url
+        self.history_elements = []
 
     def getHistoryList(self):
         query = json.dumps(historyElements_by_address(self.address))
