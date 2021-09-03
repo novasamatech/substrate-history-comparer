@@ -22,20 +22,42 @@ subscan = SubscanData(address=address, url_extrinsics=url_extrinsics,
 
 subquery = SubqueryData(url=subquery_url, address=address)
 
-matching_value = []
+def getKeysForValueComp(dictionary, value):
+    return [key for key in dictionary if dictionary[key] == value]
+
+def matching_values(subquery_data, subscan_data):
+    print('Subquery data has: %s' % len(subquery_data))
+    print('Subscan data has: %s' % len(subscan_data))
+    subq_extrinsics = []
+    subq_transfers = []
+    subq_rewards = []
+    for subq_element in subquery_data:
+        if subq_element.get('transfer'):
+            subq_transfers.append(subq_element)
+        if subq_element.get('extrinsic'):
+            subq_extrinsics.append(subq_element)
+        if subq_element.get('reward'):
+            subq_rewards.append(subq_element)
+
+    for transfer in subq_transfers:
+        value = transfer['transfer']['extrinsicId']
+        subscan_data[:] = [d for d in subscan_data if d.get('extrinsic_index') != value]
+    for extrinsic in subq_extrinsics:
+        value = extrinsic['id']
+        subscan_data[:] = [d for d in subscan_data if d.get('extrinsic_hash') != value]
+    for reward in subq_rewards:
+        value = reward['id']
+        subscan_data[:] = [d for d in subscan_data if d.get('event_index') != value]
+
+    return subscan_data
+
+
+
 subscan.getAllData()
 subquery.fetchHistory()
 subquery_elements = subquery.history_elements
-for element in subscan.data:
-    for into_element in element:
-        data = subscan.type_of_subscan_operation_picker(into_element)
-        for double_into_element in data:
-            i = 0
-            for dictionary in subquery.history_elements:
-                for key, value in dictionary.items():
-                    if key == 'timestamp':
-                        if int(value) == double_into_element['block_timestamp']:
-                            subquery_elements.pop(i)
-                i+=1
-print(subquery_elements)
-print('Success')
+subscan_data = subscan.store_all_operation_in_one_list()
+value = matching_values(subscan_data=subscan_data, subquery_data=subquery_elements)
+print('Found non match events: %s' % len(value))
+for found_element in value:
+    print(found_element)

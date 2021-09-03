@@ -2,6 +2,8 @@ import requests
 import json
 import math
 
+from requests.models import requote_uri
+
 
 class SubscanData:
     address = ""
@@ -50,6 +52,16 @@ class SubscanData:
         except:
             print('It is not transfer')
         return return_data
+
+    def store_all_operation_in_one_list(this):
+        returned_data = []
+        for blocks_of_data in this.data:
+            for block_of_data in blocks_of_data:
+                data = this.type_of_subscan_operation_picker(block_of_data)
+                if (data):
+                    for data_elemet in data:
+                        returned_data.append(data_elemet)
+        return returned_data
 
     def __send_request(self, url, data):
         headers = {
