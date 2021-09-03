@@ -3,27 +3,24 @@ from src.data_module.SubscanData import SubscanData
 
 
 class Networks:
-    polka = ["polkadot", 10]
-    kusama = ["kusama", 12]
+    polka = ["polkadot", 10, 'https://api.subquery.network/sq/ef1rspb/fearless-wallet']
+    kusama = ["kusama", 12, 'https://api.subquery.network/sq/ef1rspb/fearless-wallet-ksm']
     westend = ['westend', 12]
 
 
-network = Networks.polka
-address = "114SUbKCXjmb9czpWTtS3JANSmNRwVa4mmsMrWYpRG1kDH5"
+network = Networks.kusama
+address = "FyE2tgkaAhARtpTJSy8TtJum1PwNHP1nCy3SuFjEGSvNfMv"
 
 url_extrinsics = 'https://%s.api.subscan.io/api/scan/extrinsics' % (network[0])
 url_rewards = 'https://%s.api.subscan.io/api/scan/account/reward_slash' % (
     network[0])
 url_transfers = 'https://%s.api.subscan.io/api/scan/transfers' % (network[0])
-subquery_url = 'https://api.subquery.network/sq/ef1rspb/fearless-wallet'
+subquery_url = network[2]
 
 subscan = SubscanData(address=address, url_extrinsics=url_extrinsics,
                       url_rewards=url_rewards, url_transfers=url_transfers)
 
 subquery = SubqueryData(url=subquery_url, address=address)
-
-def getKeysForValueComp(dictionary, value):
-    return [key for key in dictionary if dictionary[key] == value]
 
 def matching_values(subquery_data, subscan_data):
     print('Subquery data has: %s elements' % len(subquery_data))
