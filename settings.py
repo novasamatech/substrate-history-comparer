@@ -1,4 +1,4 @@
-from src.data_module.addresses import kusama_addresses, polkadot_addresses
+from addresses import kusama_addresses, polkadot_addresses
 
 class Networks:
     polka = ["polkadot", 10,

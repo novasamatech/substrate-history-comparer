@@ -3,7 +3,6 @@ from src.loger import *
 
 def matching_values(subquery_data, subscan_data):
     print('Subquery data has: %s elements' % len(subquery_data))
-    print('Subscan data has: %s elements' % len(subscan_data))
     subq_extrinsics = []
     subq_transfers = []
     subq_rewards = []

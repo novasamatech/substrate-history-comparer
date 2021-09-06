@@ -1,7 +1,7 @@
 import json
 import requests
 
-from .fixture import historyElement_by_id, historyElements_by_address
+from .fixture import historyElement_by_id, historyElements_by_address, get_rewards
 
 
 class SubqueryData:
@@ -26,6 +26,26 @@ class SubqueryData:
         for element in history_list['data']['historyElements']['edges']:
             data = element['node']
             self.history_elements.append(data)
+
+    def calculate_rewards(self, new_request=None):
+        total_rewards = float()
+        if (new_request):
+            query = json.dumps(get_rewards(self.address))
+            data = self.__send_request(self.url, query)
+            iteration_data = json.loads(data.text)
+            for element in iteration_data['data']['historyElements']['nodes']:
+                total_rewards += float(element['reward']['amount'])
+        else:
+            for element in self.history_elements:
+                try:
+                    reward_amount = float(element['reward']['amount'])
+                    if (element['reward']['isReward']):
+                        total_rewards += reward_amount
+                    else:
+                        total_rewards -= reward_amount
+                except:
+                    continue
+        return total_rewards
 
     def __send_request(self, url, data):
         headers = {

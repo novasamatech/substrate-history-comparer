@@ -81,6 +81,20 @@ class SubscanData:
                         returned_data.append(data_elemet)
         return returned_data
 
+    def calculate_rewards(self):
+        self.rewards_amount = float()
+        for rewards in self.data[1]:
+            try:
+                for reward in rewards['data']['list']:
+                    if reward['event_id'] == 'Reward':
+                        self.rewards_amount += float(reward['amount'])
+                    elif reward['event_id'] == 'Slash':
+                        self.rewards_amount -= float(reward['amount'])
+            except:
+                return 0
+        return self.rewards_amount
+
+
     def __send_request(self, url, data):
         headers = {
             'Content-Type': 'application/json',
