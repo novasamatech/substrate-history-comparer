@@ -94,7 +94,6 @@ class SubscanData:
                 return 0
         return self.rewards_amount
 
-
     def __send_request(self, url, data):
         headers = {
             'Content-Type': 'application/json',
