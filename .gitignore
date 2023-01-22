@@ -114,4 +114,6 @@ dmypy.json
 .pyre/
 .vscode
 previous_data
-*.txt
+.DS_Store
+results.txt
+referenda_data.json
