@@ -7,19 +7,18 @@ import json
 from src.data_module.SubqueryData import SubqueryData
 from src.data_module.subsquare_data import SubSquare
 
-def collect_data(subquery_url, subsquery_url):
+def collect_data(subquery_url, subsquare_url):
+    """ Collects data from the subquery and subsquare data sources and returns them as objects """
+
     sub_query = SubqueryData(url=subquery_url)
-    sub_square = SubSquare(url=subsquery_url)
+    sub_square = SubSquare(url=subsquare_url)
     local_data = read_data_from_json('referenda_data.json')
 
-    if (local_data is None):
-
+    if local_data is None:
         referenda_list = sub_square.getReferendaList()
-        for referenda_id, _ in referenda_list.items():
+        for referenda_id in referenda_list:
             print(f"Getting voters for referenda {referenda_id}...")
             sub_square.getReferendaVoters(referenda_id)
-
-        # sub_query.getReferendaList(referenda_list.keys())
     else:
         sub_square.referenda_dict = local_data
 
@@ -28,11 +27,14 @@ def collect_data(subquery_url, subsquery_url):
 def check_data_in_subquery(sub_query, sub_square: SubSquare):
     subquery_voters_dict = {}
 
+    def find_index(arr, referenda_id):
+        return next((i for i, x in enumerate(arr) if x['referendumId'] == referenda_id), None)
+
     def find_proper_vote_and_compare(arr, referenda_id, subsquare_vote):
-        index = next((i for i, x in enumerate(arr) if x['referendumId'] == referenda_id), None)
-        if index is not None:
+        try:
+            index = find_index(arr, referenda_id)
             compare_vote_data(arr[index], subsquare_vote)
-        else:
+        except TypeError:
             print("Element not found ❌")
             print(f"for account {subsquare_vote['voter']} and referendum {referenda_id}")
             print(f"Subsquare vote: {subsquare_vote}")
