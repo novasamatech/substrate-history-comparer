@@ -53,11 +53,11 @@ class SubscanData:
             print('It is not transfer')
         return return_data
 
-    def store_all_operation_in_one_list(this):
+    def store_all_operation_in_one_list(self):
         returned_data = []
-        for blocks_of_data in this.data:
+        for blocks_of_data in self.data:
             for block_of_data in blocks_of_data:
-                data = this.type_of_subscan_operation_picker(block_of_data)
+                data = self.type_of_subscan_operation_picker(block_of_data)
                 if (data):
                     for data_elemet in data:
                         returned_data.append(data_elemet)
