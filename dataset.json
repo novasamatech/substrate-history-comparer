@@ -1,0 +1,34 @@
+[
+  {
+    "name": "democracy delegator/delegated/proxy: not voted",
+    "account": "Dq97kmsJXGTciU1eMXZMAp4D41Y9e7kQ4hmFBfZW7YD4CCf"
+  },
+  {
+    "name": "not delegated: voted",
+    "account": "GUbtWYtH6p7wfAaWYuhAfaZQg8HB5LL2vMXb4H5tdUyZ9tN"
+  },
+  {
+    "name": "democracy delegator, validator: voted",
+    "account": "J6HxQniipCQLVAJxzC1pn2DphoN3za9eAq1bhkBtMhZ9sid"
+  },
+  {
+    "name": "democracy delegated/delegated: voted",
+    "account": "HPUEzi4v3YJmhBfSbcGEFFiNKPAGVnGkfDiUzBNTR7j1CxT"
+  },
+  {
+    "name": "democracy delegator/delegated/council/proxy/multisig: voted Paradox",
+    "account": "HqRcfhH8VXMhuCk5JXe28WMgDDuW9MVDVNofe1nnTcefVZn"
+  },
+  {
+    "name": "democracy delegator: ChaosDao",
+    "account": "CwVE5LkNLqY7j8WV4tRJtDVFAkCnx2rhK6sgrVRN9YdNZqt"
+  },
+  {
+    "name": "convictionvoting delegator: voted",
+    "account": "F4qzxcZZwP3tEXYG2jXwjPyTqKQeJaVJPVaksH7x5cWPEer"
+  },
+  {
+    "name": "convictionvoting delegated: voted",
+    "account": "HfGeoDcNtHvcHEFgetosA1M3ictTTeinNsuK3i9ToMfbNNc"
+  }
+]
