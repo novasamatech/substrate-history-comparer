@@ -12,7 +12,7 @@ class SubSquare:
         self.url = url
 
     def getReferendaList(self):
-        url = self.url + "/_next/data/kPxvqVFRVYuTjX8x_DWp3/referenda.json?page=0"
+        url = self.url + "/_next/data/N8PtzlmYhHyOlEeMGBTTM/referenda.json?page=0"
         response = self.__send_request(url, "GET", None, None)
         for referenda in response.json()['pageProps']['posts']['items']:
             self.referenda_dict[referenda['referendumIndex']] = referenda

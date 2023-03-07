@@ -12,11 +12,12 @@ class SubscanData:
     url_rewards = ""
     data = []
 
-    def __init__(self, address, url_extrinsics, url_transfers, url_rewards) -> None:
+    def __init__(self, address=None, url_extrinsics=None, url_transfers=None, url_rewards=None, referenda_url=None) -> None:
         self.address = address
         self.url_extrinsics = url_extrinsics
         self.url_transfers = url_transfers
         self.url_rewards = url_rewards
+        self.referenda_url = referenda_url
 
     def getAllData(self) -> None:
         self.getExtrinsics()
@@ -24,17 +25,20 @@ class SubscanData:
         self.getTransactions()
 
     def getExtrinsics(self):
-        data = self.__request_processor(self.url_extrinsics)
+        payload = {"address": self.address}
+        data = self.__request_processor(self.url_extrinsics, payload)
         self.data.append(data)
         return data
 
     def getTransactions(self):
-        data = self.__request_processor(self.url_transfers)
+        payload = {"address": self.address}
+        data = self.__request_processor(self.url_transfers, payload)
         self.data.append(data)
         return data
 
     def getRewards(self):
-        data = self.__request_processor(self.url_rewards)
+        payload = {"address": self.address}
+        data = self.__request_processor(self.url_rewards, payload)
         self.data.append(data)
         return data
 
@@ -63,18 +67,68 @@ class SubscanData:
                         returned_data.append(data_elemet)
         return returned_data
 
+    def get_referenda_list(self):
+        referenda_list = []
+
+        def merge_all_referenda(completed, active):
+            return_array = []
+            referendums = completed + active
+            for referenda in referendums:
+                return_array += referenda['data']['list']
+
+            return return_array
+
+        payload = {"status":"active","origin":"all"}
+        active_referena = self.__request_processor(self.referenda_url, payload)
+        payload['status'] = "completed"
+        completed_referenda = self.__request_processor(self.referenda_url, payload)
+        referenda_list = merge_all_referenda(active_referena, completed_referenda)
+        referenda_dict = {}
+        for referenda in referenda_list:
+            referenda_dict[referenda['referendum_index']] = referenda
+
+        self.all_referenda = referenda_dict
+
+        return self.all_referenda
+
+    def get_all_votes(self, referenda_dict: dict):
+        total_votes = []
+
+        for referenda_id, referenda in referenda_dict.items():
+            votes = self.get_votes_for_referenda(referenda_id)
+            total_votes += votes
+            print(f"Referend {referenda_id} processed!")
+
+        return total_votes
+
+    def get_votes_for_referenda(self, referenda_id):
+        referenda_votes = []
+        payload = {"referendum_index": referenda_id}
+        vote_list = self.__request_processor('https://kusama.webapi.subscan.io/api/scan/referenda/votes', payload)
+
+        for votes in vote_list:
+            referenda_votes += votes['data']['list']
+
+        self.all_referenda[referenda_id]['votes'] = referenda_votes
+
+        return referenda_votes
+
+
     def __send_request(self, url, data):
         headers = {
             'Content-Type': 'application/json',
-            'x-api-key': 'd5a1d1cffde69e7cbff6d9c0cf1cca6d'
+            'x-api-key': 'd5a1d1cffde69e7cbff6d9c0cf1cca6d',
+            'baggage': 'sentry-public_key=da3d374c00b64b6196b5d5861d4d1374,sentry-trace_id=fb6a06eb7a3c4ada9263c2451eadfba2,sentry-sample_rate=0.01',
+            'content-type': 'application/json',
+            'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36'
         }
         return requests.request("POST", url, headers=headers,
-                                data=data)
+                                json=data)
 
-    def __request_processor(self, url):
+    def __request_processor(self, url, payload):
         return_data = []
         first_response = self.__send_request(
-            url, self.__payload_creator(self.address, 0)).json()
+            url, self.__payload_update(payload, 0)).json()
         count = int(first_response.get("data").get("count"))
         request_count = math.ceil(count/100)
         if count <= 100:
@@ -82,13 +136,11 @@ class SubscanData:
         else:
             for i in range(request_count):
                 response = self.__send_request(
-                    url, self.__payload_creator(self.address, i)).json()
+                    url, self.__payload_update(payload, i)).json()
                 return_data.append(response)
         return return_data
 
-    def __payload_creator(self, address, n) -> str:
-        return json.dumps({
-            "address": address,
-            "row": 100,
-            "page": n
-        })
+    def __payload_update(self, payload, n) -> str:
+        payload['page'] = n
+        payload['row'] = 100
+        return payload
