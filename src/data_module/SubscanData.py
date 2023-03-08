@@ -109,9 +109,24 @@ class SubscanData:
         for votes in vote_list:
             referenda_votes += votes['data']['list']
 
-        self.all_referenda[referenda_id]['votes'] = referenda_votes
+        final_votes = self.__remove_recurring_votes(referenda_votes)
 
-        return referenda_votes
+        self.all_referenda[referenda_id]['votes'] = final_votes
+
+        return final_votes
+
+    def __remove_recurring_votes(self, voters_list):
+        account_dict = {}
+        for voter in voters_list:
+            account = voter['account']['address']
+            voting_time = voter['voting_time']
+            if account in account_dict:
+                if voting_time > account_dict[account]['max_voting_time']:
+                    account_dict[account]['max_voting_time'] = voting_time
+            else:
+                account_dict[account] = {'max_voting_time': voting_time, **voter}
+        return list(account_dict.values())
+
 
 
     def __send_request(self, url, data):

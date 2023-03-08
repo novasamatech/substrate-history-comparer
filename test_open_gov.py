@@ -119,18 +119,19 @@ def compare_subquery_with_subscan(subquery_url, subscan_referenda_url):
     sub_query = SubqueryData(url=subquery_url)
     sub_scan = SubscanData(referenda_url=subscan_referenda_url)
 
-    # referendums_dict = sub_scan.get_referenda_list()
+    referendums_dict = sub_scan.get_referenda_list()
 
-    # voters = sub_scan.get_all_votes(referendums_dict)
+    voters = sub_scan.get_all_votes(referendums_dict)
 
     # save_data_in_json(sub_scan.all_referenda, 'referenda_data.json')
 
-    referendums = read_data_from_json('referenda_data.json')
-    # voters = sub_query.fetch_referenda_data(referendums.keys())
+    referendums = sub_scan.all_referenda
+    # referendums = read_data_from_json('referenda_data.json')
+    voters = sub_query.fetch_referenda_data(referendums.keys())
 
-    # save_data_in_json(sub_query.referenda_dict, 'subquery_referenda_1.json')
-    # save_data_in_json(voters, 'subquery_voters_1.json')
-    voters = read_data_from_json('subquery_voters_1.json')
+    # save_data_in_json(sub_query.referenda_dict, 'subquery_referenda.json')
+    # save_data_in_json(voters, 'subquery_voters.json')
+    # voters = read_data_from_json('subquery_voters_1.json')
 
     def find_index(arr, referenda_id):
         return next((i for i, x in enumerate(arr) if int(x['referendumId']) == int(referenda_id)), None)
@@ -163,25 +164,17 @@ def compare_subquery_with_subscan(subquery_url, subscan_referenda_url):
         elif subquery_vote['splitVote'] is not None:
             tested_aye_amount = subquery_vote['splitVote']['ayeAmount']
             tested_nay_amount = subquery_vote['splitVote']['nayAmount']
+            tested_vote_amount = int(tested_aye_amount) + int(tested_nay_amount)
 
-            vote_amount = sub_scan_vote['amount']
+            vote_amount = int(sub_scan_vote['amount'])
             vote_conviction = sub_scan_vote['conviction']
-            vote_direction = True if sub_scan_vote['status'] == 'Ayes' else False
 
-            if vote_direction:
-                if tested_aye_amount == vote_amount:
-                    print(f"Votes match ✅\nfor {sub_scan_vote['account']['address']} and referendum {subquery_vote['referendumId']}.")
-                else:
-                    print(f"Votes don't match ❌\n{sub_scan_vote['account']['address']} and referendum {subquery_vote['referendumId']}.")
-                    print(f"Subquery vote: {subquery_vote}")
-                    print(f"Subsquare vote: {sub_scan_vote}")
+            if tested_vote_amount == vote_amount:
+                print(f"Votes match ✅\nfor {sub_scan_vote['account']['address']} and referendum {subquery_vote['referendumId']}.")
             else:
-                if tested_nay_amount == vote_amount:
-                    print(f"Votes match ✅\nfor {sub_scan_vote['account']['address']} and referendum {subquery_vote['referendumId']}.")
-                else:
-                    print(f"Votes don't match ❌\n{sub_scan_vote['account']['address']} and referendum {subquery_vote['referendumId']}.")
-                    print(f"Subquery vote: {subquery_vote}")
-                    print(f"Subsquare vote: {sub_scan_vote}")
+                print(f"Votes don't match ❌\n{sub_scan_vote['account']['address']} and referendum {subquery_vote['referendumId']}.")
+                print(f"Subquery vote: {subquery_vote}")
+                print(f"Subsquare vote: {sub_scan_vote}")
 
         else:
             tested_vote_amount = subquery_vote['standardVote']['vote']['amount']
