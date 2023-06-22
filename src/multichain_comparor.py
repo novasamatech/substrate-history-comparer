@@ -46,35 +46,36 @@ def check_difference_between_rewards(subscan_reards: dict, subquery_rewards: dic
     print(f"Count of difference rewards: {len(new_dict.keys())}")
     print(f"Difference rewards: {new_dict}")
 
-def check_accumulated_rewards_difference(subscan_reards: dict, subquery_rewards: dict):
+def check_accumulated_rewards_difference(subscan_rewards: dict, subquery_rewards: dict):
     subscan_total_rewards = 0
     sorted_keys = sorted(subquery_rewards.keys())
     my_total_reward_calculation = 0
     
     first_element_with_problem = None
     for key in sorted_keys:
-        subquery_amount = int(subquery_rewards[key].get('amount'))
-        subquery_accumulated_amount = int(subquery_rewards[key].get('accumulatedAmount'))
-        if subscan_reards[key].get('event_id') == 'Slashed':
-            my_total_reward_calculation -= subquery_amount   
+        subq_reward = subquery_rewards[key]
+        subquery_amount = int(subq_reward.get('amount'))
+        subquery_accumulated_amount = int(subq_reward.get('accumulatedAmount'))
+        if subq_reward.get('type') == 'reward':
+            my_total_reward_calculation += subquery_amount  
         else: 
-            my_total_reward_calculation += subquery_amount
+            my_total_reward_calculation -= subquery_amount 
         
-        previous_reward = subquery_rewards[key]
+        previous_reward = subq_reward
         if subquery_accumulated_amount != my_total_reward_calculation:
             # Skip processing if found element from which calculation is wrong
             if first_element_with_problem:
                 continue
             
             print(f"Clculation is not the same: {subquery_accumulated_amount} vs {my_total_reward_calculation}")
-            print(f"Full data: {subquery_rewards[key]}")
+            print(f"Subquery data: {subq_reward}")
             first_element_with_problem = previous_reward
-            print(f"Previous reward - {first_element_with_problem}")
+            print(f"First reward with problem - {first_element_with_problem}")
         else:
-            previous_reward = subquery_rewards[key]
+            previous_reward = subq_reward
     
     # Calculate subscan total rewards
-    for _, subscan_reward in subscan_reards.items():
+    for _, subscan_reward in subscan_rewards.items():
         event = subscan_reward.get('event_id')
         if event == 'Rewarded' or event == 'Reward':
             subscan_total_rewards += int(subscan_reward.get('amount'))

@@ -20,8 +20,8 @@ def referenda_all_account_votes(account_id):
 
 def multichain_account_rewards(account_id, cursor=None):
     if cursor:
-        query = 'query {rewards(filter: { address: {equalTo:"%s"}} after: "%s") {nodes {address amount id networkId accumulatedAmount}pageInfo { startCursor endCursor}}}' % (account_id, cursor)
+        query = 'query {rewards(filter: { address: {equalTo:"%s"}} after: "%s") {nodes {address amount id networkId accumulatedAmount type}pageInfo { startCursor endCursor}}}' % (account_id, cursor)
     else:
-        query = 'query {rewards(filter: { address: {equalTo:"%s"}}) {nodes {address amount id networkId accumulatedAmount}pageInfo { startCursor endCursor}}}' % (account_id)
+        query = 'query {rewards(filter: { address: {equalTo:"%s"}}) {nodes {address amount id networkId accumulatedAmount type}pageInfo { startCursor endCursor}}}' % (account_id)
     
     return {"query": query}
