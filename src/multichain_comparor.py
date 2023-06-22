@@ -55,7 +55,10 @@ def check_accumulated_rewards_difference(subscan_reards: dict, subquery_rewards:
     for key in sorted_keys:
         subquery_amount = int(subquery_rewards[key].get('amount'))
         subquery_accumulated_amount = int(subquery_rewards[key].get('accumulatedAmount'))
-        my_total_reward_calculation += subquery_amount
+        if subscan_reards[key].get('event_id') == 'Slashed':
+            my_total_reward_calculation -= subquery_amount   
+        else: 
+            my_total_reward_calculation += subquery_amount
         
         previous_reward = subquery_rewards[key]
         if subquery_accumulated_amount != my_total_reward_calculation:
@@ -75,10 +78,12 @@ def check_accumulated_rewards_difference(subscan_reards: dict, subquery_rewards:
         event = subscan_reward.get('event_id')
         if event == 'Rewarded' or event == 'Reward':
             subscan_total_rewards += int(subscan_reward.get('amount'))
+        elif event == "Slashed":
+            subscan_total_rewards -= int(subscan_reward.get('amount'))
         else:
             raise Exception(f"Wrong event - {subscan_reward.get('event_id')}")
 
-    print(f"My accumulation rewards: {my_total_reward_calculation}")
+    print(f"Calculated accumulatedRewards, based on subquery data: {my_total_reward_calculation}")
     print(f"SubQuery accumulated rewards: {subquery_rewards[sorted_keys.pop()].get('accumulatedAmount')}")
     print(f"Subscan total rewards: {subscan_total_rewards}")
 
@@ -87,7 +92,10 @@ def main():
     subquery_url = "https://api.subquery.network/sq/nova-wallet/subquery-staking"
     options = ["kusama", "polkadot", "moonbeam", "moonriver", "westend"]
     selection = input("Please type a network, use one of this list: " + ", ".join(options) + "\n")
-    subscan_rewards_url = f"https://{selection}.webapi.subscan.io/api/v2/scan/account/reward_slash"
+    if selection not in ["moonbeam", "moonriver"]:
+        subscan_rewards_url = f"https://{selection}.webapi.subscan.io/api/v2/scan/account/reward_slash"
+    else:
+        subscan_rewards_url = f"https://{selection}.webapi.subscan.io/api/scan/account/reward_slash"
     address = input("Account address: ")
     print("Data collection takes some time...")
     sub_query, sub_scan = collect_data(subquery_url, subscan_rewards_url, address)
