@@ -25,9 +25,19 @@ def compare_subquery_with_subscan(sub_query_rewards, sub_scan_rewards):
     
     subscan_total_rewards = 0
     sorted_keys = sorted(sub_query_dict.keys())
+    my_total_reward_calculation = 0
+    for key in sorted_keys:
+        my_total_reward_calculation += int(sub_query_dict[key].get('amount'))
+    
+    print(f"My accumulation rewards: {my_total_reward_calculation}")
     print(f"SubQuery accumulated erwards: {sub_query_dict[sorted_keys.pop()].get('accumulatedAmount')}")
     for sub_scan_id, subscan_reward in sub_scan_dict.items():
 
+        subquery_reward = sub_query_dict[sub_scan_id]
+        
+        if subquery_reward.get('amount') != subscan_reward.get('amount'):
+            print(f"Reward amount is not equal! {subquery_reward}, {subscan_reward}")
+        
         if subscan_reward.get('event_id') == 'Rewarded':
             subscan_total_rewards += int(subscan_reward.get('amount'))
         else:
