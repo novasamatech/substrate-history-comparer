@@ -45,6 +45,7 @@ def check_difference_between_rewards(subscan_reards: dict, subquery_rewards: dic
     
     print(f"Count of difference rewards: {len(new_dict.keys())}")
     print(f"Difference rewards: {new_dict}")
+    print("="*20)
 
 def check_accumulated_rewards_difference(subscan_rewards: dict, subquery_rewards: dict):
     subscan_total_rewards = 0
@@ -67,10 +68,11 @@ def check_accumulated_rewards_difference(subscan_rewards: dict, subquery_rewards
             if first_element_with_problem:
                 continue
             
-            print(f"Clculation is not the same: {subquery_accumulated_amount} vs {my_total_reward_calculation}")
+            print(f"accumulatedAmount is not the same: {subquery_accumulated_amount} vs {my_total_reward_calculation}")
             print(f"Subquery data: {subq_reward}")
             first_element_with_problem = previous_reward
             print(f"First reward with problem - {first_element_with_problem}")
+            print("="*20)
         else:
             previous_reward = subq_reward
     
@@ -87,6 +89,7 @@ def check_accumulated_rewards_difference(subscan_rewards: dict, subquery_rewards
     print(f"Calculated accumulatedRewards, based on subquery data: {my_total_reward_calculation}")
     print(f"SubQuery accumulated rewards: {subquery_rewards[sorted_keys.pop()].get('accumulatedAmount')}")
     print(f"Subscan total rewards: {subscan_total_rewards}")
+    print("="*20)
 
 
 def main():
