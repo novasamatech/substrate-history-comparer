@@ -30,12 +30,14 @@ def compare_subquery_with_subscan(sub_query_rewards, sub_scan_rewards):
 
         if subscan_reward.get('event_id') == 'Rewarded':
             subscan_total_rewards += int(subscan_reward.get('amount'))
+        else:
+            raise Exception(f"Wrong event - {subscan_reward.get('event_id')}")
         
         del sub_query_dict[sub_scan_id]
     
     
-    print(sub_query_dict)
     print(f"Subscan total rewards: {subscan_total_rewards}")
+    print(f"Difference rewards: {sub_query_dict}")
     return sub_query_dict
 
 def main():
