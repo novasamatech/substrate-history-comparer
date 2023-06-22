@@ -3,7 +3,7 @@ import requests
 import json
 import time
 
-from .fixture import historyElements_by_address, historyElement_by_id, referenda_by_id, referenda_all_account_votes, small_data_referenda_by_id
+from .fixture import historyElements_by_address, historyElement_by_id, multichain_account_rewards, referenda_by_id, referenda_all_account_votes, small_data_referenda_by_id
 
 
 class SubqueryData:
@@ -61,6 +61,25 @@ class SubqueryData:
         self.account_votes_dictionary[account_id] = data
 
         return data
+    
+    def getMultichainRewards(self, account_id):
+        total_rewards = []
+        query = json.dumps(multichain_account_rewards(account_id))
+        data = self.__send_request(self.url, query)
+        rewards = data.get('data').get('rewards')
+        total_rewards = total_rewards + rewards.get('nodes')
+        
+        def make_deep_request(cursor):
+            new_query = json.dumps(multichain_account_rewards(account_id, cursor=cursor))
+            new_data = self.__send_request(self.url, new_query)
+            new_rewards = new_data.get('data').get('rewards')
+            return new_rewards
+        
+        while (len(rewards.get('nodes')) == 100):
+            rewards = make_deep_request(rewards.get('pageInfo').get('endCursor'))
+            total_rewards = total_rewards + rewards.get('nodes')
+            
+        return total_rewards
 
     def __send_request(self, url, data):
         headers = {

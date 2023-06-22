@@ -119,19 +119,19 @@ def compare_subquery_with_subscan(subquery_url, subscan_referenda_url):
     sub_query = SubqueryData(url=subquery_url)
     sub_scan = SubscanData(referenda_url=subscan_referenda_url)
 
-    referendums_dict = sub_scan.get_referenda_list()
+    # referendums_dict = sub_scan.get_referenda_list()
 
-    voters = sub_scan.get_all_votes(referendums_dict)
+    # voters = sub_scan.get_all_votes(referendums_dict)
 
     # save_data_in_json(sub_scan.all_referenda, 'referenda_data.json')
 
-    referendums = sub_scan.all_referenda
-    # referendums = read_data_from_json('referenda_data.json')
+    # referendums = sub_scan.all_referenda
+    referendums = read_data_from_json('referenda_data.json')
     voters = sub_query.fetch_referenda_data(referendums.keys())
 
     # save_data_in_json(sub_query.referenda_dict, 'subquery_referenda.json')
     # save_data_in_json(voters, 'subquery_voters.json')
-    # voters = read_data_from_json('subquery_voters_1.json')
+    # voters = read_data_from_json('subquery_voters.json')
 
     def find_index(arr, referenda_id):
         return next((i for i, x in enumerate(arr) if int(x['referendumId']) == int(referenda_id)), None)
@@ -227,7 +227,7 @@ def read_data_from_json(path):
 
 
 def main():
-    subquery_url = "https://api.subquery.network/sq/nova-wallet/nova-wallet-kusama-governance"
+    subquery_url = "https://api.subquery.network/sq/nova-wallet/nova-wallet-kusama-governance2"
     subsquery_url = "https://kusama.subsquare.io"
     subscan_referenda_url = "https://kusama.webapi.subscan.io/api/scan/referenda/referendums"
     # sub_query, sub_square = collect_data(subquery_url, subsquery_url)

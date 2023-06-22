@@ -37,10 +37,12 @@ class SubscanData:
         return data
 
     def getRewards(self):
+        total_rewards = []
         payload = {"address": self.address}
         data = self.__request_processor(self.url_rewards, payload)
-        self.data.append(data)
-        return data
+        for request in data:
+            total_rewards = total_rewards + request.get('data').get('list')
+        return total_rewards
 
     def type_of_subscan_operation_picker(self, element):
         try:
