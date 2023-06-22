@@ -57,6 +57,7 @@ def check_accumulated_rewards_difference(subscan_reards: dict, subquery_rewards:
         subquery_accumulated_amount = int(subquery_rewards[key].get('accumulatedAmount'))
         my_total_reward_calculation += subquery_amount
         
+        previous_reward = subquery_rewards[key]
         if subquery_accumulated_amount != my_total_reward_calculation:
             # Skip processing if found element from which calculation is wrong
             if first_element_with_problem:
@@ -71,13 +72,14 @@ def check_accumulated_rewards_difference(subscan_reards: dict, subquery_rewards:
     
     # Calculate subscan total rewards
     for _, subscan_reward in subscan_reards.items():
-        if subscan_reward.get('event_id') == 'Rewarded':
+        event = subscan_reward.get('event_id')
+        if event == 'Rewarded' or event == 'Reward':
             subscan_total_rewards += int(subscan_reward.get('amount'))
         else:
             raise Exception(f"Wrong event - {subscan_reward.get('event_id')}")
 
     print(f"My accumulation rewards: {my_total_reward_calculation}")
-    print(f"SubQuery accumulated erwards: {subquery_rewards[sorted_keys.pop()].get('accumulatedAmount')}")
+    print(f"SubQuery accumulated rewards: {subquery_rewards[sorted_keys.pop()].get('accumulatedAmount')}")
     print(f"Subscan total rewards: {subscan_total_rewards}")
 
 
