@@ -1,9 +1,23 @@
+from collections import defaultdict
 import json
 import os
 
 from data_module.SubscanData import SubscanData
 from data_module.SubqueryData import SubqueryData
 
+def diff_dicts(nova_data, multichain_data, address):
+    new_elements = defaultdict(lambda: defaultdict(lambda: defaultdict(dict)))
+    for key in nova_data.keys():
+        if key not in multichain_data.keys():
+            new_elements["nova_project"][key] = nova_data[key]
+    for key in multichain_data.keys():
+        if key not in nova_data.keys():
+            new_elements["multichain_project"][key] = multichain_data[key]
+    
+    with open("account_diff/"+address+".json", "w") as file:
+        file.write(json.dumps(new_elements))
+    
+    return new_elements
 
 def compare_subqery_accumulated_rewards(subquery_nova, subquery_multichain, address_list):
     for address in address_list:
@@ -26,7 +40,7 @@ def get_address_list(url):
             json_data = json.loads(file_contents)
             return json_data
     else:
-        account_type = 'validator'
+        account_type = 'nominator'
         accounts = SubscanData(url_accounts=url).get_all_accounts(type=account_type)
         accounts_list = [account.get('address') for account in accounts]
         with open(file_path, "w") as file:
@@ -49,6 +63,7 @@ def compare_each_reward(subquery_nova, subquery_multichain, address_list):
             print(f"Reward list NOT the same for account: {address} ❌")
             print(f"Multichain project rewards count: {len(dict_multi_rewards)}")
             print(f"Nova project rewards count: {len(dict_nova_rewards)}")
+            diff_dicts(dict_nova_rewards, dict_multi_rewards, address)
         else:
             print(f"Reward list the same for account: {address} ✅")
 
