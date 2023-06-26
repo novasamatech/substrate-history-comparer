@@ -1,3 +1,4 @@
+import time
 import requests
 import json
 import math
@@ -10,14 +11,16 @@ class SubscanData:
     url_extrinsics = ""
     url_transfers = ""
     url_rewards = ""
+    url_accounts = ""
     data = []
 
-    def __init__(self, address=None, url_extrinsics=None, url_transfers=None, url_rewards=None, referenda_url=None) -> None:
+    def __init__(self, address=None, url_extrinsics=None, url_transfers=None, url_rewards=None, referenda_url=None, url_accounts=None) -> None:
         self.address = address
         self.url_extrinsics = url_extrinsics
         self.url_transfers = url_transfers
         self.url_rewards = url_rewards
         self.referenda_url = referenda_url
+        self.url_accounts = url_accounts
 
     def getAllData(self) -> None:
         self.getExtrinsics()
@@ -116,6 +119,17 @@ class SubscanData:
         self.all_referenda[referenda_id]['votes'] = final_votes
 
         return final_votes
+    
+    def get_all_accounts(self, type: str):
+        return_accounts = []
+        if type != "nominator" and type != "validator":
+            raise ValueError("Type must be 'nominator' or 'validator'")
+        
+        payload = {"filter": type}
+        account_lists = self.__request_processor(self.url_accounts, payload)
+        for account_list in account_lists:
+            return_accounts += account_list.get('data').get('list')
+        return return_accounts
 
     def __remove_recurring_votes(self, voters_list):
         account_dict = {}
@@ -152,8 +166,13 @@ class SubscanData:
             return_data.append(first_response)
         else:
             for i in range(request_count):
-                response = self.__send_request(
-                    url, self.__payload_update(payload, i)).json()
+                try:
+                    response = self.__send_request(
+                        url, self.__payload_update(payload, i)).json()
+                except:
+                    time.sleep(1)
+                    response = self.__send_request(
+                        url, self.__payload_update(payload, i)).json()
                 return_data.append(response)
         return return_data
 
