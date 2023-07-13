@@ -1,5 +1,8 @@
-def historyElements_by_address(address):
-    query = '{\n    historyElements(filter:{address:{equalTo:\"%s\"}}){\n    edges{\n      node{\n        id,\n        address,\n        extrinsic,\n        transfer,\n        reward,\n        timestamp\n      }\n    }\n  }\n}' % (address)
+def historyElements_by_address(address, cursor=None):
+    if cursor:
+        query = '{historyElements(after: "%s" filter: {address: {equalTo: "%s"}}) {totalCount nodes {address assetTransfer blockNumber extrinsic extrinsicHash extrinsicIdx id nodeId reward timestamp transfer}pageInfo {endCursor hasNextPage}}}' % (cursor, address)
+    else:
+        query = '{historyElements(filter: {address: {equalTo: "%s"}}) {totalCount nodes {address assetTransfer blockNumber extrinsic extrinsicHash extrinsicIdx id nodeId reward timestamp transfer}pageInfo {endCursor hasNextPage}}}' % (address)
     return {"query": query}
 
 def historyElement_by_id(id):
@@ -38,8 +41,13 @@ def multichain_account_rewards(account_id, cursor=None):
 
 def nova_account_rewards(account_id, cursor=None):
     if cursor:
-        query = 'query {\n        historyElements(\n            after: \"%s\",\n            first: 100,\n            orderBy: TIMESTAMP_DESC,\n            filter: { \n                address:{ equalTo: \"%s\"},\n                and: [{reward: {isNull: false}},{not: {and: [{extrinsic: {isNull: false}},{and: [{extrinsic: {contains: {module: \"balances\"}}},{or: [{extrinsic: {contains: {call: \"transfer\"}}},{extrinsic: {contains: {call: \"transferKeepAlive\"}}},{extrinsic: {contains: {call: \"transferAllowDeath\"}}},{extrinsic: {contains: {call: \"forceTransfer\"}}},{extrinsic: {contains: {call: \"transferAll\"}}}]}]}]}}]\n            }\n        ) {\n            pageInfo {\n                startCursor,\n                endCursor\n            },\n            nodes {\n                id\n                timestamp\n                extrinsicHash\n                address\n                reward\n                extrinsic\n                transfer\n            }\n        }\n    }' % (cursor, account_id)
+        query = 'query {after: \"%s\", accountRewards(first: 100, filter: {address: {equalTo:"%s"}}) {nodes {id address blockNumber timestamp accumulatedAmount amount nodeId type } pageInfo {endCursor startCursor}}}' % (cursor, account_id)
     else:
-        query = 'query {\n        historyElements(\n            after: null,\n            first: 100,\n            orderBy: TIMESTAMP_DESC,\n            filter: { \n                address:{ equalTo: \"%s\"},\n                and: [{reward: {isNull: false}},{not: {and: [{extrinsic: {isNull: false}},{and: [{extrinsic: {contains: {module: \"balances\"}}},{or: [{extrinsic: {contains: {call: \"transfer\"}}},{extrinsic: {contains: {call: \"transferKeepAlive\"}}},{extrinsic: {contains: {call: \"transferAllowDeath\"}}},{extrinsic: {contains: {call: \"forceTransfer\"}}},{extrinsic: {contains: {call: \"transferAll\"}}}]}]}]}}]\n            }\n        ) {\n            pageInfo {\n                startCursor,\n                endCursor\n            },\n            nodes {\n                id\n                timestamp\n                extrinsicHash\n                address\n                reward\n                extrinsic\n                transfer\n            }\n        }\n    }' % (account_id)
+        query = 'query {accountRewards(first: 100, filter: {address: {equalTo:"%s"}}) {nodes {id address blockNumber timestamp accumulatedAmount amount nodeId type } pageInfo {endCursor startCursor}}}' % (account_id)
+    
+    return {"query": query}
+
+def multichain_accumulated_rewards_sum(account_id):
+    query = 'query {rewards(filter: {or: [{ address: {equalTo:"%s"}}]}) {groupedAggregates(groupBy: [NETWORK_ID,  STAKING_TYPE]) {sum {amount}keys}}}' % (account_id)
     
     return {"query": query}

@@ -117,3 +117,5 @@ previous_data
 .DS_Store
 results.txt
 referenda_data.json
+*.txt
+account_diff

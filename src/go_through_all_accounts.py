@@ -3,7 +3,7 @@ from multichain_comparer import collect_data, compare_subquery_with_subscan
 
 def collect_all_accounts(subscan_account_url, subscan_reward_url, subquery_url):
     account_type = "validator"
-    subscan_accounts = SubscanData(url_accounts=subscan_account_url).get_all_accounts(account_type)
+    subscan_accounts = SubscanData(url_accounts=subscan_account_url).get_all_accounts(account_type, 1000)
     print(f"Accounts with type: {account_type}\n will be processed...")
     for account in subscan_accounts:
         print("="*20)

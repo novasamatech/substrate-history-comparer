@@ -57,7 +57,7 @@ def compare_each_reward(subquery_nova, subquery_multichain, address_list):
         nova_rewards = subquery_nova_project.getNovaRewards(address)
         subquery_multi_project = SubqueryData(url=subquery_multichain, address=address)
         multichain_rewards = subquery_multi_project.getMultichainRewards(address)
-        dict_nova_rewards = {nova_reward.get('id'): nova_reward for nova_reward in nova_rewards}
+        dict_nova_rewards = {transfer_id_for_compare(nova_reward.get('id')): nova_reward for nova_reward in nova_rewards}
         dict_multi_rewards = {transfer_id_for_compare(multi_reward.get('id')): multi_reward for multi_reward in multichain_rewards}
         if len(dict_nova_rewards) != len(dict_multi_rewards):
             print(f"Reward list NOT the same for account: {address} ❌")
@@ -68,10 +68,23 @@ def compare_each_reward(subquery_nova, subquery_multichain, address_list):
             print(f"Reward list the same for account: {address} ✅")
 
 
+def compare_subqery_accumulated_rewards_case_2(subquery_nova, subquery_multichain, address_list):
+    for address in address_list:
+        subquery_nova_project = SubqueryData(url=subquery_nova, address=address)
+        rewards_nova = subquery_nova_project.getNovaAccumulatedRewards(address)
+        subquery_multi_project = SubqueryData(url=subquery_multichain, address=address)
+        rewards_multichain = subquery_multi_project.getMultichainAmountRewards(address)
+        if rewards_nova != rewards_multichain:
+            print(f"For account: {address} accumulated rewards not the same! ❌")
+            print(f"Nova project: {rewards_nova}, multichain project: {rewards_multichain}")
+        else:
+            print(f"Accumulated rewards processed for account: {address} successfully! ✅")
+
 if __name__ == "__main__":
     subquery_multichain = 'https://api.subquery.network/sq/nova-wallet/subquery-staking'
-    subquery_nova = 'https://api.subquery.network/sq/nova-wallet/nova-wallet-polkadot'
-    subscan_account_url = 'https://polkadot.webapi.subscan.io/api/v2/scan/accounts'
+    subquery_nova = 'https://api.subquery.network/sq/nova-wallet/nova-wallet-kusama'
+    subscan_account_url = 'https://kusama.webapi.subscan.io/api/v2/scan/accounts'
     address_list = get_address_list(subscan_account_url)
-    compare_each_reward(subquery_nova, subquery_multichain, address_list)
+    # compare_each_reward(subquery_nova, subquery_multichain, address_list)
+    compare_subqery_accumulated_rewards_case_2(subquery_nova, subquery_multichain, address_list)
     # compare_subqery_accumulated_rewards(subquery_nova, subquery_multichain, address_list)

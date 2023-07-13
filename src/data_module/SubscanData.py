@@ -120,13 +120,13 @@ class SubscanData:
 
         return final_votes
     
-    def get_all_accounts(self, type: str):
+    def get_all_accounts(self, type: str, batch_depth: int):
         return_accounts = []
         if type != "nominator" and type != "validator":
             raise ValueError("Type must be 'nominator' or 'validator'")
         
         payload = {"filter": type}
-        account_lists = self.__request_processor(self.url_accounts, payload)
+        account_lists = self.__request_processor(self.url_accounts, payload, retry_depth=batch_depth)
         for account_list in account_lists:
             return_accounts += account_list.get('data').get('list')
         return return_accounts
@@ -156,7 +156,7 @@ class SubscanData:
         return requests.request("POST", url, headers=headers,
                                 json=data)
 
-    def __request_processor(self, url, payload):
+    def __request_processor(self, url, payload, retry_depth = 100):
         return_data = []
         first_response = self.__send_request(
             url, self.__payload_update(payload, 0)).json()
@@ -165,7 +165,11 @@ class SubscanData:
         if count <= 100:
             return_data.append(first_response)
         else:
+
             for i in range(request_count):
+                if retry_depth == 0:
+                    return return_data
+                
                 try:
                     response = self.__send_request(
                         url, self.__payload_update(payload, i)).json()
@@ -174,6 +178,8 @@ class SubscanData:
                     response = self.__send_request(
                         url, self.__payload_update(payload, i)).json()
                 return_data.append(response)
+                retry_depth -= 1
+
         return return_data
 
     def __payload_update(self, payload, n) -> str:
