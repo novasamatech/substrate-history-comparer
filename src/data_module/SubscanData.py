@@ -1,3 +1,4 @@
+from copy import copy
 import time
 import requests
 import json
@@ -14,13 +15,14 @@ class SubscanData:
     url_accounts = ""
     data = []
 
-    def __init__(self, address=None, url_extrinsics=None, url_transfers=None, url_rewards=None, referenda_url=None, url_accounts=None) -> None:
+    def __init__(self, address=None, url_extrinsics=None, url_transfers=None, url_rewards=None, referenda_url=None, url_accounts=None, retry_depth=None) -> None:
         self.address = address
         self.url_extrinsics = url_extrinsics
         self.url_transfers = url_transfers
         self.url_rewards = url_rewards
         self.referenda_url = referenda_url
         self.url_accounts = url_accounts
+        self.retry_depth = retry_depth or 100
 
     def getAllData(self) -> None:
         self.getExtrinsics()
@@ -120,13 +122,13 @@ class SubscanData:
 
         return final_votes
     
-    def get_all_accounts(self, type: str, batch_depth: int):
+    def get_all_accounts(self, type: str):
         return_accounts = []
         if type != "nominator" and type != "validator":
             raise ValueError("Type must be 'nominator' or 'validator'")
         
         payload = {"filter": type}
-        account_lists = self.__request_processor(self.url_accounts, payload, retry_depth=batch_depth)
+        account_lists = self.__request_processor(self.url_accounts, payload)
         for account_list in account_lists:
             return_accounts += account_list.get('data').get('list')
         return return_accounts
@@ -156,8 +158,9 @@ class SubscanData:
         return requests.request("POST", url, headers=headers,
                                 json=data)
 
-    def __request_processor(self, url, payload, retry_depth = 100):
+    def __request_processor(self, url, payload):
         return_data = []
+        retry_depth = copy(self.retry_depth)
         first_response = self.__send_request(
             url, self.__payload_update(payload, 0)).json()
         count = int(first_response.get("data").get("count"))
@@ -168,6 +171,9 @@ class SubscanData:
 
             for i in range(request_count):
                 if retry_depth == 0:
+                    print("="*20)
+                    print(f"Retry depth was reached!: {retry_depth}")
+                    print("="*20)
                     return return_data
                 
                 try:
