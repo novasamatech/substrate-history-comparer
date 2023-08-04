@@ -27,7 +27,7 @@ def nova_accumulated_rewards(account_id):
     return {"query": query}
 
 def multichain_accumulated_rewards(account_id):
-    query = 'query {accumulatedRewards(filter: {address:{equalTo:"%s"}}) {nodes {address amount}}}' % (account_id)
+    query = 'query {accumulatedRewards(filter: {address:{equalTo:"%s"}}) {nodes {address amount id networkId nodeId stakingType}}}' % (account_id)
     
     return {"query": query}
 
@@ -50,4 +50,16 @@ def nova_account_rewards(account_id, cursor=None):
 def multichain_accumulated_rewards_sum(account_id):
     query = 'query {rewards(filter: {or: [{ address: {equalTo:"%s"}}]}) {groupedAggregates(groupBy: [NETWORK_ID,  STAKING_TYPE]) {sum {amount}keys}}}' % (account_id)
     
+    return {"query": query}
+
+def history_elements_restricted_by_block(account_id, block, cursor=None):
+    if cursor:
+        query = 'query {historyElements(after: "%s" filter: {address: {equalTo: "%s"}, blockNumber:{lessThanOrEqualTo: %s}}) {pageInfo {endCursor hasNextPage} nodes { address assetTransfer blockNumber extrinsic extrinsicHash extrinsicIdx id nodeId reward timestamp transfer}}}' % (cursor, account_id, block)
+    else:
+        query = 'query {historyElements(filter: {address: {equalTo: "%s"}, blockNumber:{lessThanOrEqualTo: %s}}) {pageInfo {endCursor hasNextPage} nodes { address assetTransfer blockNumber extrinsic extrinsicHash extrinsicIdx id nodeId reward timestamp transfer}}}' % (account_id, block)
+    
+    return {"query": query}
+
+def nova_accumulated_reward_by_account(account_id, block):
+    query = "{accumulatedRewards(filter: {id: {equalTo: \"%s\"}}blockHeight: \"%s\") {nodes {amount}}}" % (account_id, block)
     return {"query": query}

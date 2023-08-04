@@ -207,6 +207,62 @@ def compare_subquery_with_subscan(subquery_url, subscan_referenda_url):
             find_aproper_vote_and_compare(voters[voter_address], referenda_id, vote)
 
 
+def compare_direct_votes(vote_1, vote_2):
+    for key in vote_1:
+        # Check if key is present in both dictionaries
+        if key in vote_2:
+            # Compare the values of corresponding keys in both dictionaries
+            if isinstance(vote_1[key], dict):
+                compare_direct_votes(vote_1[key], vote_2[key])
+            if vote_1[key] != vote_2[key]:
+                return False
+        else:
+            return False
+    
+    # Check if there are any extra keys in dict2
+    for key in vote_2:
+        if key not in vote_1:
+            return False
+    
+    return True
+
+
+def compare_votes(prod_voters: dict, sgate_voters: dict):
+    for voter, votes in prod_voters.items():
+        prod_votes_dict = {vote['referendumId']: vote for vote in votes}
+        stage_votes = sgate_voters[voter]
+        stage_votes_dict = {stage_vote['referendumId']: stage_vote for stage_vote in stage_votes}
+        
+        for referendum_id, prod_vote in prod_votes_dict.items():
+            stage_vote = stage_votes_dict[referendum_id]
+            if compare_direct_votes(prod_vote, stage_vote) is not True:
+                print(f"\nVotes are not the same!\n===Prod===\n{prod_vote}\n===Stage===\n{stage_vote}")
+            
+            
+
+  
+def compare_subquery_prod_stage(prod_url, stage_url):
+    # prod = SubqueryData(url=prod_url)
+    stage = SubqueryData(url=stage_url)
+    
+    referendums = read_data_from_json('kusama_subscan_referenda_data.json')
+    
+    prod_voters = read_data_from_json('kusama_prod_voters.json')
+    
+    # if prod_voters is None:
+    #     prod_voters = prod.fetch_referenda_data(referendums.keys())
+    #     save_data_in_json(prod_voters, 'prod_voters.json')
+    
+    stage_voters = read_data_from_json('stage_voters.json')
+    
+    if stage_voters is None:
+        stage_voters = stage.fetch_referenda_data(referendums.keys())
+        save_data_in_json(stage_voters, 'stage_voters.json')
+
+    # compare_dicts(prod_voters, stage_voters)
+    compare_votes(prod_voters, stage_voters)
+
+
 
 
 def save_data_in_json(subsquare_referenda_dict, path='referenda_data.json'):
@@ -226,10 +282,11 @@ def main():
     subquery_url = "https://api.subquery.network/sq/nova-wallet/nova-wallet-kusama-governance2"
     subsquery_url = "https://kusama.subsquare.io"
     subscan_referenda_url = "https://kusama.webapi.subscan.io/api/scan/referenda/referendums"
-    sub_query, sub_square = collect_data(subquery_url, subsquery_url)
+    # sub_query, sub_square = collect_data(subquery_url, subsquery_url)
     # save_data_in_json(sub_square.referenda_dict)
-    compare_subquery_with_subsquare(sub_query, sub_square)
-    compare_subquery_with_subscan(subquery_url, subscan_referenda_url)
+    # compare_subquery_with_subsquare(sub_query, sub_square)
+    # compare_subquery_with_subscan(subquery_url, subscan_referenda_url)
+    compare_subquery_prod_stage(subquery_url, subquery_url+'__bm92Y')
     # compare_subquery_with_kusama_gov(sub_query, sub_square)
 
 

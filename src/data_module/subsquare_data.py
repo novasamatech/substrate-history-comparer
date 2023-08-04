@@ -26,7 +26,7 @@ class SubSquare:
         return self.referenda_dict
 
     def getReferendaVoters(self, referenda_id):
-        url = self.url + "/api/gov2/referendums/" + str(referenda_id) + "/vote-extrinsics"
+        url = self.url + "/api/gov2/referendums/" + str(referenda_id)
         self.referenda_dict[referenda_id]['voters'] = self.__send_request(url, "GET", None, None)
         return self.referenda_dict
 

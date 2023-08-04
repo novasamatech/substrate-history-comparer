@@ -13,8 +13,7 @@ def convert_to_checksum_address(address):
         return Web3.to_checksum_address(address)
     return address
 
-def get_address_list(url):
-    file_path = 'accounts.txt'
+def get_address_list(url, file_path="accounts.txt", account_type='nominator'):
     
     if os.path.exists(file_path):
         with open(file_path, "r") as file:
@@ -22,8 +21,7 @@ def get_address_list(url):
             json_data = json.loads(file_contents)
             return json_data
     else:
-        account_type = 'nominator'
-        accounts = SubscanData(url_accounts=url).get_all_accounts(type=account_type, batch_depth=10)
+        accounts = SubscanData(url_accounts=url).get_all_accounts(type=account_type)
         accounts_list = [account.get('address') for account in accounts]
         with open(file_path, "w") as file:
             file.write(json.dumps(accounts_list))

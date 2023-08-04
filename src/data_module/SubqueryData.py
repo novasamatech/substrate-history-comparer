@@ -3,7 +3,7 @@ import requests
 import json
 import time
 
-from .fixture import historyElements_by_address, historyElement_by_id, multichain_account_rewards, multichain_accumulated_rewards, multichain_accumulated_rewards_sum, nova_account_rewards, nova_accumulated_rewards, referenda_by_id, referenda_all_account_votes, small_data_referenda_by_id
+from .fixture import history_elements_restricted_by_block, historyElements_by_address, historyElement_by_id, multichain_account_rewards, multichain_accumulated_rewards, multichain_accumulated_rewards_sum, nova_account_rewards, nova_accumulated_reward_by_account, nova_accumulated_rewards, referenda_by_id, referenda_all_account_votes, small_data_referenda_by_id
 
 
 class SubqueryData:
@@ -139,6 +139,43 @@ class SubqueryData:
         
         try:
             return data.get('data').get('rewards').get('groupedAggregates')[0].get('sum').get('amount')
+        except:
+            return '0'
+    
+    def collect_history_data_from_block(self, block, account_id):
+        total_elements = []
+        
+        query = json.dumps(history_elements_restricted_by_block(account_id, block))
+        data =self.__send_request(self.url, query)
+        history_elements = data.get('data').get('historyElements')
+        new_elements = total_elements + history_elements.get('nodes')
+        
+        def make_deep_request(cursor):
+            new_query = json.dumps(history_elements_restricted_by_block(account_id, block, cursor=cursor))
+            new_data = self.__send_request(self.url, new_query)
+            new_elements = new_data.get('data').get('historyElements')
+            return new_elements
+        
+        while (history_elements.get('pageInfo').get('hasNextPage') == True):
+            history_elements = make_deep_request(history_elements.get('pageInfo').get('endCursor'))
+            new_elements = new_elements + history_elements.get('nodes')
+            
+        return new_elements
+        
+
+    def get_multichain_accumulated_rewards(self, accounti_id):
+        query = json.dumps(multichain_accumulated_rewards(accounti_id))
+        data = self.__send_request(self.url, query)
+        try:
+            return data.get('data').get('accumulatedRewards').get('nodes')[0].get('amount')
+        except:
+            return '0'
+    
+    def nova_get_accumulated_reward(self, account_id, block):
+        query = json.dumps(nova_accumulated_reward_by_account(account_id, block))
+        data = self.__send_request(self.url, query)
+        try:
+            return data.get('data').get('accumulatedRewards').get('nodes')[0].get('amount')
         except:
             return '0'
             
