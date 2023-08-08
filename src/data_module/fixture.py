@@ -62,4 +62,4 @@ def history_elements_restricted_by_block(account_id, block, cursor=None):
 
 def nova_accumulated_reward_by_account(account_id, block):
     query = "{accumulatedRewards(filter: {id: {equalTo: \"%s\"}}blockHeight: \"%s\") {nodes {amount}}}" % (account_id, block)
-    return {"query": query}
+    return query

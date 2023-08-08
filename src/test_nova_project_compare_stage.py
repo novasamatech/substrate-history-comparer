@@ -4,21 +4,26 @@ from compare_prod_and_stage import get_address_list
 from data_module.SubqueryData import SubqueryData
 from test_multichain_project_rewards_list import compare_results
 
-def calculate_rewards(prod_elements):
+def calculate_rewards(prod_elements, subquery):
     rewards_accumulator = 0
-    for _, element in prod_elements.items():
+    for id, element in prod_elements.items():
         reward = element.get('reward')
         if reward:
             if reward['isReward']:
+                print("\n" + id)
+                print(f"Reward: {reward['amount']}")
                 rewards_accumulator+=int(reward['amount'])
+                print(f"Calculated Total reward:  {rewards_accumulator}")
+                print(f"Accumulated total reward: {(subquery.nova_get_accumulated_reward(reward['stash'], id.split('-')[0]))}")
             else:
+                print(f"Slash amount: {reward['amount']}")
                 rewards_accumulator-=int(reward['amount'])
     
     return rewards_accumulator
 
 def nova_stage_compare(prod_url, stage_url, addresses):
     block = 4275128
-    account = "12Ea3kSFDH3Meg5Br63o5BXZh4ELvhapCj96ygaXiTtpVhUM"
+    addresses = ["16E6FVYMaaYs5KNy7cPZp2KsN9Aj7M7vPnoB5VtDPCsiUuSr"]
     prod = SubqueryData(prod_url)
     stage = SubqueryData(stage_url)
     
@@ -26,12 +31,14 @@ def nova_stage_compare(prod_url, stage_url, addresses):
         print(f"Processing address: {address}")
         prod_elements = {element['id']: element for element in prod.collect_history_data_from_block(block, address)}
         stage_elements = {element['id']: element for element in stage.collect_history_data_from_block(block, address)}
-        compare_results(prod_elements, stage_elements)
-        prod_acc_rewards = calculate_rewards(prod_elements)
+        sorted_prod_dict = dict(sorted(prod_elements.items()))
+        sorted_stage_dict = dict(sorted(stage_elements.items()))
+        compare_results(sorted_prod_dict, sorted_stage_dict)
+        prod_acc_rewards = calculate_rewards(sorted_prod_dict, stage)
         stage_acc_rewards = int(stage.nova_get_accumulated_reward(address, block))
         if prod_acc_rewards != stage_acc_rewards:
             print(f"Accumulated rewards is not the same: ❌")
-            print(f"Prod rewards:\n{prod_acc_rewards}\nStage rewards:{stage_acc_rewards}\n")
+            print(f"Prod rewards:\n{prod_acc_rewards}\nStage rewards:\n{stage_acc_rewards}\n")
         else:
             print("Accumulated rewards the same! ✅")
 
