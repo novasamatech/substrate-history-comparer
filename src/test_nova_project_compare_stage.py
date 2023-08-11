@@ -4,7 +4,7 @@ from compare_prod_and_stage import get_address_list
 from data_module.SubqueryData import SubqueryData
 from test_multichain_project_rewards_list import compare_results
 
-def calculate_rewards(prod_elements, subquery):
+def calculate_rewards(prod_elements, subquery, address):
     rewards_accumulator = 0
     for id, element in prod_elements.items():
         reward = element.get('reward')
@@ -14,7 +14,8 @@ def calculate_rewards(prod_elements, subquery):
                 print(f"Reward: {reward['amount']}")
                 rewards_accumulator+=int(reward['amount'])
                 print(f"Calculated Total reward:  {rewards_accumulator}")
-                print(f"Accumulated total reward: {(subquery.nova_get_accumulated_reward(reward['stash'], id.split('-')[0]))}")
+                accumulated_reward = subquery.nova_get_accumulated_reward(address, id.split('-')[0])
+                print(f"Accumulated total reward: {accumulated_reward}")
             else:
                 print(f"Slash amount: {reward['amount']}")
                 rewards_accumulator-=int(reward['amount'])
@@ -34,7 +35,7 @@ def nova_stage_compare(prod_url, stage_url, addresses):
         sorted_prod_dict = dict(sorted(prod_elements.items()))
         sorted_stage_dict = dict(sorted(stage_elements.items()))
         compare_results(sorted_prod_dict, sorted_stage_dict)
-        prod_acc_rewards = calculate_rewards(sorted_prod_dict, stage)
+        prod_acc_rewards = calculate_rewards(sorted_prod_dict, stage, address)
         stage_acc_rewards = int(stage.nova_get_accumulated_reward(address, block))
         if prod_acc_rewards != stage_acc_rewards:
             print(f"Accumulated rewards is not the same: ❌")
