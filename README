@@ -1,0 +1,19 @@
+# Substrate history data comparer
+
+[![License](https://img.shields.io/badge/license-Apache%202.0-green.svg)](LICENSE)
+
+## Description
+
+Provide some abstractions in order to compare data from Substrate blockchains in public explorers
+
+## Features
+
+- Compare stage and primary slots for SubQuery
+- Compare SubQuery with SubScan
+- Compare SubQuery with SubSquid
+
+## License
+
+Substrate history data comparer is available under the Apache 2.0 license. See the LICENSE file for more info.
+
+© Novasama Technologies GmbH 2023
