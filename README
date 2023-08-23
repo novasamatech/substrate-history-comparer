@@ -14,6 +14,6 @@ Provide some abstractions in order to compare data from Substrate blockchains in
 
 ## License
 
-This project is licensed under the [Apache 2.0 License](LICENSE).
+Substrate history data comparer is available under the Apache 2.0 license. See the LICENSE file for more info.
 
 You can replace the placeholders with the actual details of your project and add more sections as needed.
