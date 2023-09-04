@@ -3,8 +3,8 @@ from src.data_module.SubscanData import SubscanData
 
 
 class Networks:
-    polka = ["polkadot", 10, 'https://api.subquery.network/sq/ef1rspb/fearless-wallet']
-    kusama = ["kusama", 12, 'https://api.subquery.network/sq/ef1rspb/fearless-wallet-ksm']
+    polka = ["polkadot", 10, 'https://api.subquery.network/sq/nova-wallet/nova-wallet-polkadot']
+    kusama = ["kusama", 12, 'https://api.subquery.network/sq/nova-wallet/nova-wallet-kusama']
     westend = ['westend', 12]
 
 
